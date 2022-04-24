@@ -137,10 +137,35 @@ const getDetail = async (e) => {
 
     }
 };
+const showPagingLinks = function (url, type) {
 
+
+    let isPagingDivExists = document.querySelector(".paging-div");
+    console.log(isPagingDivExists);
+    if (isPagingDivExists === null) {
+        let pagingDiv = document.createElement("div");
+        pagingDiv.classList.add("center", "paging-div");
+        document.body.append(pagingDiv);
+        for (let i = 1; i <= 10; i++) {
+            let pageLink = document.createElement("a");
+            pageLink.classList.add("paging-link")
+            pageLink.style.margin = "5px";
+            pageLink.innerText = i;
+            pageLink.addEventListener("click", function () {
+                let requestUrl = url + `&page=${i}`;
+                getData(requestUrl, type);
+            })
+            pageLink.setAttribute("data-type", type)
+            pagingDiv.append(pageLink);
+        }
+    }
+
+
+};
 
 const getData = async (url, type) => {
     try {
+        main.innerHTML = "";
         if (type === "movie") {
             getMovieGenres();
         }
@@ -177,23 +202,7 @@ const getData = async (url, type) => {
         detailLinks.forEach(element => {
             element.addEventListener("click", getDetail)
         });
-        let pagingDiv = document.createElement("div");
-        pagingDiv.classList.add("center");
-        document.body.append(pagingDiv);
-        for (let i = 1; i <= 10; i++) {
 
-            let pageLink = document.createElement("a");
-            pageLink.classList.add("paging-link")
-            pageLink.style.margin = "5px";
-            pageLink.innerText = i;            
-            pagingDiv.append(pageLink);
-        }
-
-        let pagingLinks = document.querySelectorAll(".paging-link");
-        pagingLinks.forEach(element => {            
-            let requestUrl = url +`&page=${element.innerText}`
-            element.addEventListener("click", getData(requestUrl, type))
-        })        
     }
 
     catch (error) {
@@ -201,9 +210,18 @@ const getData = async (url, type) => {
     }
 };
 
+
+
 let callFunction = async (e, url, type) => {
+
     e.preventDefault();
     main.innerHTML = "";
+    let pagingDiv = document.querySelector(".paging-div");
+    if(pagingDiv !== null){
+
+        document.body.removeChild(pagingDiv);
+    }
+    showPagingLinks(url, type);    
     await getData(url, type);
 }
 
