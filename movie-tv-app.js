@@ -1,7 +1,7 @@
 let form = document.getElementById("search-form");
 const apiKey = "ebd943da4f3d062ae4451758267b1ca9";
 const imgSource = "https://image.tmdb.org/t/p/w500/";
-const defaultImgSource = `/images/no-image.png`;
+const defaultImgSource = `./assets/images/no-image.png`;
 const baseUrl = "https://api.themoviedb.org/3/";
 const popularMovieUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=en-US`;
 const popularTvShowUrl = `https://api.themoviedb.org/3/tv/popular?api_key=${apiKey}&language=en-US`;
@@ -24,7 +24,8 @@ form.addEventListener("submit", async (e) => {
 const getMoviesByGenre = async function () {
     try {
         main.innerHTML = "";
-        const response = await axios.get(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${this.id}&include_adult=false`)
+        console.log(`https://api.themoviedb.org/3/discover/${this.dataType}?api_key=${apiKey}&include_adult=false&with_genres=${this.id}`);
+        const response = await axios.get(`https://api.themoviedb.org/3/discover/${this.dataType}?api_key=${apiKey}&include_adult=false&with_genres=${this.id}`)
         response.data.results.forEach(element => {
             let card = document.createElement("div");
             card.classList.add("card");
@@ -63,33 +64,45 @@ const getMoviesByGenre = async function () {
 
 }
 
-const getMovieGenres = async () => {
-    try {
-        const response = await axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
-        let div = document.createElement("div");
-        let searchDiv = document.querySelector("div.search");
-        searchDiv.innerHTML = "";
-        searchDiv.append(div);
-        response.data.genres.forEach(element => {
-
-            let button = document.createElement("button");
-            button.textContent = element.name;
-            button.id = element.id;
-            button.classList.add("btn-genres");
-            div.append(button);
-        })
-        div.classList.add("genres");
-
-
-        let btnGenres = document.querySelectorAll(".btn-genres");
-        btnGenres.forEach(btn => {
-            btn.addEventListener("click", getMoviesByGenre);
-        })
-
-    } catch (error) {
-        console.log(error);
-    }
+const removeGenres = () => {
+    let genresDiv = document.querySelector(`div[class*=genres]`);
+    console.log(genresDiv);
+    if (genresDiv !== null)
+        genresDiv.remove();
 }
+
+const getGenres = async (type) => {
+
+    removeGenres();
+    let genresTypeDiv = document.querySelector(`div[class*=${type}genres]`);
+    if (genresTypeDiv === null) {
+        try {
+            const response = await axios.get(`https://api.themoviedb.org/3/genre/${type}/list?api_key=${apiKey}&language=en-US`);
+            let div = document.createElement("div");
+            let searchDiv = document.querySelector("div.search");
+            searchDiv.parentNode.insertBefore(div, searchDiv.nextSibling);
+            response.data.genres.forEach(element => {
+
+                let button = document.createElement("button");
+                button.textContent = element.name;
+                button.id = element.id;
+                button.dataType = type;
+                button.classList.add("btn-genres");
+                div.append(button);
+            })
+            div.classList.add(`${type}genres`);
+            let btnGenres = document.querySelectorAll(".btn-genres");
+            btnGenres.forEach(btn => {
+                btn.addEventListener("click", getMoviesByGenre);
+            })
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+}
+
 
 const getDetail = async (e) => {
     try {
@@ -141,17 +154,23 @@ const showPagingLinks = function (url, type) {
 
 
     let isPagingDivExists = document.querySelector(".paging-div");
-    console.log(isPagingDivExists);
     if (isPagingDivExists === null) {
         let pagingDiv = document.createElement("div");
         pagingDiv.classList.add("center", "paging-div");
+        pagingDiv.style.marginBottom = "1rem";
         document.body.append(pagingDiv);
         for (let i = 1; i <= 10; i++) {
             let pageLink = document.createElement("a");
             pageLink.classList.add("paging-link")
-            pageLink.style.margin = "5px";
+            pageLink.style.marginBottom = "15px";
+            pageLink.style.padding = "8px 16px";
+            pageLink.style.border = "1px solid #ddd"
             pageLink.innerText = i;
             pageLink.addEventListener("click", function () {
+                let activePage = document.querySelector("a.active");
+                if(activePage !== null)
+                    activePage.classList.remove("active");
+                pageLink.classList.add("active");
                 let requestUrl = url + `&page=${i}`;
                 getData(requestUrl, type);
             })
@@ -166,9 +185,12 @@ const showPagingLinks = function (url, type) {
 const getData = async (url, type) => {
     try {
         main.innerHTML = "";
-        if (type === "movie") {
-            getMovieGenres();
-        }
+        if (type !== "person")
+            getGenres(type);
+        else
+            removeGenres();
+
+
         const response = await axios.get(url);
         response.data.results.forEach(element => {
             let card = document.createElement("div");
@@ -217,11 +239,11 @@ let callFunction = async (e, url, type) => {
     e.preventDefault();
     main.innerHTML = "";
     let pagingDiv = document.querySelector(".paging-div");
-    if(pagingDiv !== null){
+    if (pagingDiv !== null) {
 
         document.body.removeChild(pagingDiv);
     }
-    showPagingLinks(url, type);    
+    showPagingLinks(url, type);
     await getData(url, type);
 }
 
