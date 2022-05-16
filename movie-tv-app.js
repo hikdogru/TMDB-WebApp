@@ -10,6 +10,7 @@ let input = document.getElementById("search-input");
 let navMovie = document.getElementById("movies");
 let navTVShow = document.getElementById("tvshows");
 let navCeleb = document.getElementById("celebs");
+let navHome = document.getElementById("home");
 let main = document.querySelector(".main");
 
 form.addEventListener("submit", async (e) => {
@@ -21,11 +22,11 @@ form.addEventListener("submit", async (e) => {
     await getData(url);
 });
 
-const getMoviesByGenre = async function () {
+
+const getMoviesByGenre = async ({ target: { id, dataType } }) => {
     try {
         main.innerHTML = "";
-        console.log(`https://api.themoviedb.org/3/discover/${this.dataType}?api_key=${apiKey}&include_adult=false&with_genres=${this.id}`);
-        const response = await axios.get(`https://api.themoviedb.org/3/discover/${this.dataType}?api_key=${apiKey}&include_adult=false&with_genres=${this.id}`)
+        const response = await axios.get(`https://api.themoviedb.org/3/discover/${dataType}?api_key=${apiKey}&include_adult=false&with_genres=${id}`)
         response.data.results.forEach(element => {
             let card = document.createElement("div");
             card.classList.add("card");
@@ -66,7 +67,6 @@ const getMoviesByGenre = async function () {
 
 const removeGenres = () => {
     let genresDiv = document.querySelector(`div[class*=genres]`);
-    console.log(genresDiv);
     if (genresDiv !== null)
         genresDiv.remove();
 }
@@ -82,7 +82,6 @@ const getGenres = async (type) => {
             let searchDiv = document.querySelector("div.search");
             searchDiv.parentNode.insertBefore(div, searchDiv.nextSibling);
             response.data.genres.forEach(element => {
-
                 let button = document.createElement("button");
                 button.textContent = element.name;
                 button.id = element.id;
@@ -103,9 +102,93 @@ const getGenres = async (type) => {
 
 }
 
+const getCredits = async (type, id) => {
+    try {
+        const response = await axios.get(baseUrl + type + `/${id}/credits?api_key=${apiKey}&language=en-US`);
+        let cast = document.createElement("div");
+        cast.classList.add("cast");
+
+        response.data.cast.forEach(c => {
+            let card = document.createElement("div");
+            card.classList.add("card");
+            let imgDiv = document.createElement("div");
+
+            let img = document.createElement("img");
+            let name = document.createElement("div");
+            let h3 = document.createElement("h3");
+            h3.textContent = c.original_name;
+            img.src = c.profile_path === null ? defaultImgSource : (imgSource + c.profile_path);
+            imgDiv.classList.add("img");
+            name.classList.add("center");
+            imgDiv.append(img);
+            main.append(card)
+            card.append(imgDiv, name)
+
+            name.append(h3);
+
+        });
+
+
+
+
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+const getPersonCredits = async (id) => {
+
+
+    try {
+        const response = await axios.get(`${baseUrl + "person/" + id + "/" + "combined_credits?api_key=" + apiKey + "&language=en-US"}`);
+        let section = document.createElement("section");
+        section.style.width = "100%";
+        let ol = document.createElement("ol");
+        ol.classList.add("people");
+        response.data.cast.forEach(c => {
+
+            let card = document.createElement("li");
+            card.classList.add("card");
+            let imgDiv = document.createElement("div");
+            let img = document.createElement("img");
+            let name = document.createElement("div");
+            let h3 = document.createElement("h3");
+            let releaseDate = document.createElement("span");
+            releaseDate.textContent = c.release_date === undefined ? new Date(c.first_air_date).getFullYear()
+                : new Date(c.release_date).getFullYear();
+            h3.textContent = c.original_title === undefined ? c.original_name : c.original_title;
+            img.src = c.poster_path === null ? defaultImgSource : (imgSource + c.poster_path);
+            imgDiv.classList.add("img");
+            img.classList.add("credits-img");
+            name.classList.add("center");
+            imgDiv.append(img);
+            section.append(ol);
+            ol.append(card);
+            main.append(section)
+            card.append(imgDiv, name)
+            name.append(h3, releaseDate);
+        });
+
+
+
+
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+const hidePagingLinks = () => {
+    let pagingDiv = document.querySelector(".paging-div");
+    if (pagingDiv !== null)
+        pagingDiv.style.display = "none";
+
+}
 
 const getDetail = async (e) => {
     try {
+        hidePagingLinks();
         main.innerHTML = "";
         let id = e.target.parentNode.id;
         let type = e.target.parentNode.getAttribute("data-type");
@@ -141,7 +224,10 @@ const getDetail = async (e) => {
         imgDiv.append(a)
         name.append(h3, overviewElement, popularityElement)
 
-
+        if (type !== "person")
+            getCredits(type, id);
+        else
+            getPersonCredits(id);
 
 
     } catch (error) {
@@ -150,6 +236,8 @@ const getDetail = async (e) => {
 
     }
 };
+
+
 const showPagingLinks = function (url, type) {
 
 
@@ -158,17 +246,16 @@ const showPagingLinks = function (url, type) {
         let pagingDiv = document.createElement("div");
         pagingDiv.classList.add("center", "paging-div");
         pagingDiv.style.marginBottom = "1rem";
+        pagingDiv.style.marginTop = "2rem";
         document.body.append(pagingDiv);
         for (let i = 1; i <= 10; i++) {
             let pageLink = document.createElement("a");
-            pageLink.classList.add("paging-link")
-            pageLink.style.marginBottom = "15px";
             pageLink.style.padding = "8px 16px";
             pageLink.style.border = "1px solid #ddd"
             pageLink.innerText = i;
             pageLink.addEventListener("click", function () {
                 let activePage = document.querySelector("a.active");
-                if(activePage !== null)
+                if (activePage !== null)
                     activePage.classList.remove("active");
                 pageLink.classList.add("active");
                 let requestUrl = url + `&page=${i}`;
@@ -200,10 +287,11 @@ const getData = async (url, type) => {
             let img = document.createElement("img");
             let name = document.createElement("div");
             let h3 = document.createElement("h3");
+            let releaseDate = document.createElement("span");
             a.classList.add("detail-link");
             a.id = element.id;
             a.name = element.id;
-            a.setAttribute("data-type", type);
+            a.setAttribute("data-type", (type === undefined ? element.media_type : type));
             imgDiv.classList.add("img");
             img.src = element.poster_path == null ? (defaultImgSource) : (imgSource + element.poster_path);
             if (element.poster_path === undefined) {
@@ -216,8 +304,10 @@ const getData = async (url, type) => {
             card.append(imgDiv, name)
             a.append(img);
             imgDiv.append(a)
-            name.append(h3)
-
+            name.append(h3);
+            releaseDate.textContent = element.release_date === undefined ? new Date(element.first_air_date).toLocaleDateString()
+                : new Date(element.release_date).toLocaleDateString();
+            name.append(releaseDate);
         })
 
         let detailLinks = document.querySelectorAll(".detail-link");
@@ -232,7 +322,28 @@ const getData = async (url, type) => {
     }
 };
 
-
+const showHomeContents = async () => {
+    removeGenres();
+    hidePagingLinks();
+    main.innerHTML = "";
+    let container = document.createElement("div");
+    container.classList.add("search-container");
+    let searchingDiv = document.createElement("div");
+    let titleDiv = document.createElement("div");
+    titleDiv.classList.add("title-div");
+    searchingDiv.classList.add("search-div");
+    let searchInput = document.createElement("input");
+    let searchButton = document.createElement("button");
+    searchButton.textContent = "Search";
+    searchButton.classList.add("search-button");
+    searchInput.classList.add("search-input")
+    titleDiv.textContent = "Millions of movies, TV shows and people to discover. Explore now.";
+    titleDiv.style.margin = "1rem";
+    container.style.border = "1px solid orange";
+    main.append(container);
+    searchingDiv.append(searchInput, searchButton);
+    container.append(titleDiv, searchingDiv);
+}
 
 let callFunction = async (e, url, type) => {
 
@@ -247,6 +358,13 @@ let callFunction = async (e, url, type) => {
     await getData(url, type);
 }
 
+
 navMovie.addEventListener("click", (e) => callFunction(e, popularMovieUrl, "movie"));
 navTVShow.addEventListener("click", (e) => callFunction(e, popularTvShowUrl, "tv"));
 navCeleb.addEventListener("click", (e) => callFunction(e, popularCelebUrl, "person"));
+navHome.addEventListener("click", (e) => {
+    e.preventDefault();
+    showHomeContents();
+})
+
+
