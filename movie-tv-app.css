@@ -165,3 +165,28 @@ div.main section {
   height: calc(100vh / 2.5);
   max-height: 360px;
 }
+
+
+#search-input {
+  border-radius: 10rem;
+  width: 15rem;
+  height: 3rem;
+  outline: #4caf50;
+  font-size: 1rem;
+  padding: 5px 10px;
+}
+
+form button {
+  cursor: pointer;
+  background-color: #fff;
+  color: #4caf50;
+  font-size: 1.5rem;
+  border: 2px solid #4caf50;
+  padding: 0.3rem .6rem ;
+}
+
+form button:hover {
+  background-color: #85c487;
+  color: white;
+  transition: 1s;
+}

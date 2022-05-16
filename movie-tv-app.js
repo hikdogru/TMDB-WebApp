@@ -13,6 +13,10 @@ let navCeleb = document.getElementById("celebs");
 let navHome = document.getElementById("home");
 let main = document.querySelector(".main");
 
+
+
+input.setAttribute("autocomplete", "off");
+
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
     main.innerHTML = "";
