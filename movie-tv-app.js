@@ -1,11 +1,16 @@
+import {
+    API_BASE_URL,
+    API_IMG_BASE_URL,
+    API_KEY,
+    POPULAR_MOVIE_URL,
+    POPULAR_TVSHOW_URL,
+    POPULAR_CELEB_URL
+}
+    from "./config.js";
+
+import { getMoviesByGenre } from "./movie-component.js";
 let form = document.getElementById("search-form");
-const apiKey = "ebd943da4f3d062ae4451758267b1ca9";
-const imgSource = "https://image.tmdb.org/t/p/w500/";
 const defaultImgSource = `./assets/images/no-image.png`;
-const baseUrl = "https://api.themoviedb.org/3/";
-const popularMovieUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=en-US`;
-const popularTvShowUrl = `https://api.themoviedb.org/3/tv/popular?api_key=${apiKey}&language=en-US`;
-const popularCelebUrl = `https://api.themoviedb.org/3/person/popular?api_key=${apiKey}&language=en-US`;
 let input = document.getElementById("search-input");
 let navMovie = document.getElementById("movies");
 let navTVShow = document.getElementById("tvshows");
@@ -21,53 +26,15 @@ form.addEventListener("submit", async (e) => {
     e.preventDefault();
     main.innerHTML = "";
     let query = input.value;
-    let url = `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&language=en-US&query=${query}&include_adult=false`
+    let url = `${API_BASE_URL}search/multi?api_key=${API_KEY}&language=en-US&query=${query}&include_adult=false`
     input.value = "";
     await getData(url);
 });
 
 
-const getMoviesByGenre = async ({ target: { id, dataType } }) => {
-    try {
-        main.innerHTML = "";
-        const response = await axios.get(`https://api.themoviedb.org/3/discover/${dataType}?api_key=${apiKey}&include_adult=false&with_genres=${id}`)
-        response.data.results.forEach(element => {
-            let card = document.createElement("div");
-            card.classList.add("card");
-            let imgDiv = document.createElement("div");
-            let a = document.createElement("a");
-            let img = document.createElement("img");
-            let name = document.createElement("div");
-            let h3 = document.createElement("h3");
-            a.classList.add("detail-link");
-            a.id = element.id;
-            a.name = element.id;
-            a.setAttribute("data-type", "movie");
-            imgDiv.classList.add("img");
-            img.src = element.poster_path == null ? (defaultImgSource) : (imgSource + element.poster_path);
-            if (element.poster_path === undefined) {
-                img.src = element.profile_path == null ? (defaultImgSource) : (imgSource + element.profile_path);
-            }
-            name.classList.add("card-info");
-            h3.textContent = (element.title === undefined ? element.name : element.title);
-            name.style.textAlign = "center";
-            main.append(card)
-            card.append(imgDiv, name)
-            a.append(img);
-            imgDiv.append(a)
-            name.append(h3)
-        })
+// getmoviesbygenre
 
-        let detailLinks = document.querySelectorAll(".detail-link");
-        detailLinks.forEach(element => {
 
-            element.addEventListener("click", getDetail)
-        });
-    } catch (error) {
-        console.log(error);
-    }
-
-}
 
 const removeGenres = () => {
     let genresDiv = document.querySelector(`div[class*=genres]`);
@@ -81,7 +48,7 @@ const getGenres = async (type) => {
     let genresTypeDiv = document.querySelector(`div[class*=${type}genres]`);
     if (genresTypeDiv === null) {
         try {
-            const response = await axios.get(`https://api.themoviedb.org/3/genre/${type}/list?api_key=${apiKey}&language=en-US`);
+            const response = await axios.get(`https://api.themoviedb.org/3/genre/${type}/list?api_key=${API_KEY}&language=en-US`);
             let div = document.createElement("div");
             let searchDiv = document.querySelector("div.search");
             searchDiv.parentNode.insertBefore(div, searchDiv.nextSibling);
@@ -108,7 +75,7 @@ const getGenres = async (type) => {
 
 const getCredits = async (type, id) => {
     try {
-        const response = await axios.get(baseUrl + type + `/${id}/credits?api_key=${apiKey}&language=en-US`);
+        const response = await axios.get(API_BASE_URL + type + `/${id}/credits?api_key=${API_KEY}&language=en-US`);
         let cast = document.createElement("div");
         cast.classList.add("cast");
 
@@ -121,7 +88,7 @@ const getCredits = async (type, id) => {
             let name = document.createElement("div");
             let h3 = document.createElement("h3");
             h3.textContent = c.original_name;
-            img.src = c.profile_path === null ? defaultImgSource : (imgSource + c.profile_path);
+            img.src = c.profile_path === null ? defaultImgSource : (API_IMG_BASE_URL + c.profile_path);
             imgDiv.classList.add("img");
             name.classList.add("center");
             imgDiv.append(img);
@@ -145,7 +112,7 @@ const getPersonCredits = async (id) => {
 
 
     try {
-        const response = await axios.get(`${baseUrl + "person/" + id + "/" + "combined_credits?api_key=" + apiKey + "&language=en-US"}`);
+        const response = await axios.get(`${API_BASE_URL + "person/" + id + "/" + "combined_credits?api_key=" + API_KEY + "&language=en-US"}`);
         let section = document.createElement("section");
         section.style.width = "100%";
         let ol = document.createElement("ol");
@@ -162,7 +129,7 @@ const getPersonCredits = async (id) => {
             releaseDate.textContent = c.release_date === undefined ? new Date(c.first_air_date).getFullYear()
                 : new Date(c.release_date).getFullYear();
             h3.textContent = c.original_title === undefined ? c.original_name : c.original_title;
-            img.src = c.poster_path === null ? defaultImgSource : (imgSource + c.poster_path);
+            img.src = c.poster_path === null ? defaultImgSource : (API_IMG_BASE_URL + c.poster_path);
             imgDiv.classList.add("img");
             img.classList.add("credits-img");
             name.classList.add("center");
@@ -197,7 +164,7 @@ const getDetail = async (e) => {
         let id = e.target.parentNode.id;
         let type = e.target.parentNode.getAttribute("data-type");
         let element = document.querySelector(".detail-link");
-        let url = baseUrl + type + "/" + id + "?api_key=" + apiKey;
+        let url = API_BASE_URL + type + "/" + id + "?api_key=" + API_KEY;
         let response = await axios.get(url);
         let card = document.createElement("div");
         card.classList.add("card");
@@ -212,9 +179,9 @@ const getDetail = async (e) => {
         card.style.width = "80%";
         h3.style.margin = "1rem";
         imgDiv.classList.add("img");
-        img.src = response.data.poster_path == null ? (defaultImgSource) : (imgSource + response.data.poster_path);
+        img.src = response.data.poster_path == null ? (defaultImgSource) : (API_IMG_BASE_URL + response.data.poster_path);
         if (response.data.poster_path === undefined) {
-            img.src = response.data.profile_path == null ? (defaultImgSource) : (imgSource + response.data.profile_path);
+            img.src = response.data.profile_path == null ? (defaultImgSource) : (API_IMG_BASE_URL + response.data.profile_path);
         }
         name.classList.add("card-info");
         h3.textContent = "Name :" + (response.data.title === undefined ? response.data.name : response.data.title);
@@ -297,9 +264,9 @@ const getData = async (url, type) => {
             a.name = element.id;
             a.setAttribute("data-type", (type === undefined ? element.media_type : type));
             imgDiv.classList.add("img");
-            img.src = element.poster_path == null ? (defaultImgSource) : (imgSource + element.poster_path);
+            img.src = element.poster_path == null ? (defaultImgSource) : (API_IMG_BASE_URL + element.poster_path);
             if (element.poster_path === undefined) {
-                img.src = element.profile_path == null ? (defaultImgSource) : (imgSource + element.profile_path);
+                img.src = element.profile_path == null ? (defaultImgSource) : (API_IMG_BASE_URL + element.profile_path);
             }
             name.classList.add("card-info");
             h3.textContent = (element.title === undefined ? element.name : element.title);
@@ -363,9 +330,9 @@ let callFunction = async (e, url, type) => {
 }
 
 
-navMovie.addEventListener("click", (e) => callFunction(e, popularMovieUrl, "movie"));
-navTVShow.addEventListener("click", (e) => callFunction(e, popularTvShowUrl, "tv"));
-navCeleb.addEventListener("click", (e) => callFunction(e, popularCelebUrl, "person"));
+navMovie.addEventListener("click", (e) => callFunction(e, POPULAR_MOVIE_URL, "movie"));
+navTVShow.addEventListener("click", (e) => callFunction(e, POPULAR_TVSHOW_URL, "tv"));
+navCeleb.addEventListener("click", (e) => callFunction(e, POPULAR_CELEB_URL, "person"));
 navHome.addEventListener("click", (e) => {
     e.preventDefault();
     showHomeContents();
