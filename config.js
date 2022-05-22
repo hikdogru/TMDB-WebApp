@@ -4,6 +4,7 @@ const API_IMG_BASE_URL = "https://image.tmdb.org/t/p/w500/";
 const POPULAR_MOVIE_URL = `${API_BASE_URL}movie/popular?api_key=${API_KEY}&language=en-US`;
 const POPULAR_TVSHOW_URL = `${API_BASE_URL}tv/popular?api_key=${API_KEY}&language=en-US`;
 const POPULAR_CELEB_URL = `${API_BASE_URL}person/popular?api_key=${API_KEY}&language=en-US`;
+const DEFAULT_IMG_SOURCE  = `./assets/images/no-image.png`;
 
 
 export {
@@ -12,5 +13,6 @@ export {
     API_IMG_BASE_URL,
     POPULAR_MOVIE_URL,
     POPULAR_TVSHOW_URL,
-    POPULAR_CELEB_URL
+    POPULAR_CELEB_URL,
+    DEFAULT_IMG_SOURCE
 };
