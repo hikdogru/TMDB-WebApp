@@ -11,7 +11,7 @@ import {
 
 
 import { getPersonCredits } from "./person-component.js";
-import {getMoviesByGenre, getCredits} from "./movie-component.js"
+import { getMoviesByGenre, getCredits } from "./movie-component.js"
 
 let main = document.querySelector(".main");
 
@@ -167,27 +167,67 @@ const getData = async (url, type) => {
 };
 
 
+const getPopularMovies = async () => {
+
+    try {
+
+        let response = await axios.get("https://api.themoviedb.org/3/trending/movie/week?api_key=ebd943da4f3d062ae4451758267b1ca9");
+        response.data.results.forEach(element => {
+            let popularDiv = document.getElementById("popular");
+            let html = `<div class="card">
+
+            <div class="img">
+                <img src="${API_IMG_BASE_URL + element.poster_path}"
+                    alt="Image">
+            </div>
+
+            <div class="card-body">
+                <h3>${element.title}</h3>
+                <div>
+                <img src="/assets/images/star.svg" id="rating-star">
+                <span id="vote-average">  ${element.vote_average} </span>
+                </div>
+            </div>
+        </div>`;
+
+            popularDiv.innerHTML += html;
+
+
+        });
+        console.log(response.data.results);
+
+
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
 const showHomeContents = async () => {
     removeGenres();
     hidePagingLinks();
     main.innerHTML = "";
-    let container = document.createElement("div");
-    container.classList.add("search-container");
-    let searchingDiv = document.createElement("div");
-    let titleDiv = document.createElement("div");
-    titleDiv.classList.add("title-div");
-    searchingDiv.classList.add("search-div");
-    let searchInput = document.createElement("input");
-    let searchButton = document.createElement("button");
-    searchButton.textContent = "Search";
-    searchButton.classList.add("search-button");
-    searchInput.classList.add("search-input")
-    titleDiv.textContent = "Millions of movies, TV shows and people to discover. Explore now.";
-    titleDiv.style.margin = "1rem";
-    container.style.border = "1px solid orange";
-    main.append(container);
-    searchingDiv.append(searchInput, searchButton);
-    container.append(titleDiv, searchingDiv);
+    let container = `<div class="search-container" style="border: 1px solid orange;">
+    <div class="title-div" style="margin: 1rem;">Millions of movies, TV shows and people to discover. Explore now.
+    </div>
+    <div class="search-div"><input class="search-input"><button class="search-button">Search</button></div>
+</div>`;
+
+
+
+
+    main.innerHTML += container;
+
+
+    let content = document.querySelector(".content");
+    let popularArea = `<div id="popular">
+                        Popular
+                        
+                        </div>`;
+
+
+    content.innerHTML += popularArea;
+    await getPopularMovies();
 }
 
 export {

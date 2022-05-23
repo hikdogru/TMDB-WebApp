@@ -190,3 +190,34 @@ form button:hover {
   color: white;
   transition: 1s;
 }
+
+#popular {
+  display: flex;    
+  flex-direction: column;
+  width: 300px;
+  height: 800px;
+  margin-top: 2rem;
+  margin-right: 2rem;
+  border: 1px solid #4caf50;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+#popular img {
+  width: 100px;
+  height: auto;
+  margin-bottom: 1rem;
+  float: left;
+}
+
+
+
+img#rating-star {
+  box-shadow: none;
+  width: 30px;    
+}
+
+#popular .card-body div{
+  display: flex;
+  align-items: center;
+}
